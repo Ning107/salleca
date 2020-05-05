@@ -10,7 +10,7 @@ $result=mysqli_query($link,$query);
 if ($result) {
     //pour récupérer toutes les informations
     while($data=mysqli_fetch_array($result,MYSQLI_ASSOC)){
-        //print_r($data);
+       // print_r($data);
     }
 }else{
     var_dump(mysqli_error($link));
@@ -57,33 +57,33 @@ if ($result) {
 		<h1 style = "text-align : center;">Consultation</h1>
 		<p class="lead" style = "text-align : center;">Vous trouverez ici les informations utiles selon la citère que vous choisissez.</p>
 	</div>
+	<form method = "post" action = "consultation.php">
     <div class="container">
         <div class="row">
             <div class="col">
                 <div class="form-group">
     				<label for="exampleFormControlSelect1" style="font-size:30px;">Flitrer par : </label>
-    				<select class="form-control" id="exampleFormControlSelect1">
-	      				<option>Professeur</option>
-	      				<option>Salle</option>
+    				<select class="form-control" id="exampleFormControlSelect1" name = "filtre" >
+	      				<option value ="professeur">Professeur</option>
+	      				<option value = "salle">Salle</option>
 	    			</select>
   				</div>
             </div>
         </div>
     </div>
-    <form>
         <div class="container">
             <div class="row">
                 <div class="col">
-                    <div class="form-group" id="salle" hidden>
+                    <div class="form-group" id="salle" style = "display : none;">
                         <label for="exampleFormControlSelect1" style="font-size:15px;">Nom de salle : </label>
-                        <select class="form-control" id="exampleFormControlSelect1">
+                        <select class="form-control" id="exampleFormControlSelect1" name = "selectsalle">
                             <?php
                                 $query2="select distinct salle_name from consultation";
                                 $result2=mysqli_query($link,$query2);
                                 if ($result2) {
                                     //pour récupérer tous les noms de salle
                                     while($salle=mysqli_fetch_row($result2)){
-                                        echo "<option>".$salle['0']."</option>";
+                                        echo "<option value ='".$salle['0']."'>".$salle['0']."</option>";
                                     }
                                 }else{
                                     var_dump(mysqli_error($link));
@@ -93,14 +93,14 @@ if ($result) {
                     </div>
                      <div class="form-group" id="professeur">
                         <label for="exampleFormControlSelect1" style="font-size:15px;">Nom de professeur : </label>
-                        <select class="form-control" id="exampleFormControlSelect1">
+                        <select class="form-control" id="exampleFormControlSelect1" name = "selectprof">
                             <?php
                                 $query1="select distinct user from consultation where profil='Professeur'";
                                 $result1=mysqli_query($link,$query1);
                                 if ($result1) {
                                     //pour récupérer tous les noms de professeur
                                     while($nom=mysqli_fetch_row($result1)){
-                                        echo "<option>".$nom['0']."</option>";
+                                        echo "<option value ='".$nom['0']."'>".$nom['0']."</option>";
                                     }
                                 }else{
                                     var_dump(mysqli_error($link));
@@ -123,11 +123,83 @@ if ($result) {
             </div>
         </div>
         <div style="margin-left:45%;margin-bottom:30px;">
-            <button class="btn btn-primary" type="submit">Valide</button>
+            <button class="btn btn-primary" type="submit" id = "valide">Valide</button>
         </div >
     </form>
+    
+    <div class = "container" id="horaires"><?php
+    
+		if (isset($_POST['filtre'])){
+			$filtre = $_POST['filtre'];
+			
+			if ($filtre == "professeur") {		// si filtre par prof
+				if (isset($_POST['selectprof'])){
+					$prof = $_POST['selectprof'];
+					
+					print "<h2 style = 'text-align : center;'>".$prof."</h2>\n
+							<div class = 'row'>\n";
+					
+					$requete = "select salle_name, date, horaire, info from consultation where user = '".$prof."'";
+					$reponse=mysqli_query($link,$requete);
+					if ($reponse) {
+						while($enr=mysqli_fetch_array($reponse,MYSQLI_ASSOC)){
+							$salle = $enr['salle_name'];
+							$date = $enr['date'];
+							$horaire = $enr['horaire'];
+							$info = $enr['info'];
+							
+							print "<div class='col-md-4'>\n
+									<div class='card' style='width: 18rem;'>\n
+									<div class='card-body'>\n";
+							print "<h6 class='card-subtitle mb-2 text-muted'>".$date." | ".$horaire."</h6>";
+							print "<p class = 'card-text'>Salle : ".$salle.
+									"<br/>\nInformations : ".$info."</p>";
+							print "\n</div>
+									\n</div>
+									\n</div>";
+							
+						}
+					}
+				}
+			}
+			elseif ($filtre == "salle"){	// si filtre par salle
+				if (isset ($_POST['selectsalle'])){
+					$salle = $_POST['selectsalle'];
+					print "<h2 style = 'text-align : center;'>".$salle."</h2>\n
+							<div class = 'row'>\n";
+					
+					$requete = "select user, date, horaire, info from consultation where salle_name = '".$salle."'";
+					$reponse=mysqli_query($link,$requete);
+					if ($reponse) {
+						while($enr=mysqli_fetch_array($reponse,MYSQLI_ASSOC)){
+							$prof = $enr['user'];
+							$date = $enr['date'];
+							$horaire = $enr['horaire'];
+							$info = $enr['info'];
+							
+							print "<div class='col-md-4'>\n
+									<div class='card' style='width: 18rem;'>\n
+									<div class='card-body'>\n";
+							print "<h6 class='card-subtitle mb-2 text-muted'>".$date." | ".$horaire."</h6>";
+							print "<p class = 'card-text'>Professeur : ".$prof.
+									"<br/>\nInformations : ".$info."</p>";
+							print "\n</div>
+									\n</div>
+									\n</div>";
+							
+						}
+					}
+				}
+			}
+		}
+		else {
+			echo "Sélectionner les informations de consultation.";
+		}
+    
+		?></div>
+    </div>
 	
-
+<hr class="my-4">
 
 </body>
 <script src="js/core/jquery.3.2.1.min.js" type="text/javascript"></script>
@@ -142,6 +214,26 @@ if ($result) {
 <script type="text/javascript" src="js/moment/min/moment-with-locales.js"></script>
 <script src="https://cdn.bootcss.com/bootstrap-datetimepicker/4.17.47/js/bootstrap-datetimepicker.min.js"></script>
 <script>
+
+	var filtre;
+	
+	
+		
+		// afficher nom de prof ou nom de salle
+	$("[name = 'filtre']").change(function() {
+		filtre = $(this).val();
+		if (filtre == 'salle') {
+			$("#salle").show();
+			$("#professeur").hide();
+		}
+		else {
+			$("#salle").hide();
+			$("#professeur").show();
+		}
+	});
+	
+
+	
 	$(function () {
 	$('#datetimepicker1').datetimepicker({
 	format: 'DD-MM-YYYY',
